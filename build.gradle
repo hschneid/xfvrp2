@@ -19,8 +19,8 @@ apply plugin:'com.github.spotbugs'
 group = "com.github.hschneid"
 archivesBaseName = "xfvrp"
 version = "11.5.0-RELEASE"
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
 
 repositories {
     mavenCentral()

@@ -6,8 +6,12 @@ import xf.xfvrp.model.Model;
 import xf.xfvrp.optimize.Solution;
 import xf.xfvrp.optimize.evaluation.Evaluator;
 import xf.xfvrp.optimize.evaluation.RouteEvaluator;
+import xf.xfvrp.optimize.evaluation.SolutionPurifier;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -15,7 +19,7 @@ public class RandomizedSolutionBuilder {
 
     private final Random rand = new Random(1234);
 
-    public Solution execute(Model model) {
+    public Solution build(Model model) {
         var solution = createSolution(model);
 
         addJobs(solution);
@@ -46,7 +50,7 @@ public class RandomizedSolutionBuilder {
 
         // Bring customers into randomized order
         Collections.shuffle(jobs, rand);
-        NormalizeSolutionService.normalizeRoute(solution);
+        SolutionPurifier.purify(solution);
 
         solution.setUnassignedJobs(new ArrayList<>());
 
@@ -65,7 +69,7 @@ public class RandomizedSolutionBuilder {
                 var isValid = check(solution, newRoute);
                 if (isValid) {
                     solution.getSchedule()[j] = newRoute;
-                    NormalizeSolutionService.normalizeRoute(solution);
+                    SolutionPurifier.purify(solution);
                     continue JOBS;
                 }
             }

@@ -4,10 +4,10 @@ public record Job(
         int idx,
         String name,
         Location location,
-        float[] demand,
+        float[] amount,
         float[][] timeWindows,
         LoadType loadType,
-        Job relatedJob,
+        int relatedJobIdx,
         float serviceTime,
         int expectedSkills,
         float benefit

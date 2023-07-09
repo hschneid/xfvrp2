@@ -8,7 +8,7 @@ public class Test {
 
     public Test() {
         var model = createModel();
-        var solution = new RandomizedSolutionBuilder().execute(model);
+        var solution = new RandomizedSolutionBuilder().build(model);
         Evaluator.evaluate(solution);
 
         System.out.println(solution.getQuality());
@@ -54,7 +54,7 @@ public class Test {
                                 new float[]{3,1,1},
                                 new float[][]{{5,60},{70,100}},
                                 LoadType.DELIVERY,
-                                null,
+                                -1,
                                 3,
                                 4,
                                 100

@@ -119,7 +119,7 @@ public class Context {
     public void addAmounts() {
         var job = (Job)currentEvent;
         for (int i = 0; i < loadedAmount.length; i++) {
-            loadedAmount[i] += job.demand()[i];
+            loadedAmount[i] += job.amount()[i];
         }
     }
 
