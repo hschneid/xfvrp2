@@ -54,24 +54,25 @@ public class RandomizedSolutionBuilder {
 
         solution.setUnassignedJobs(new ArrayList<>());
 
-        // For every customer block ...
         JOBS:
         for (Job job : jobs) {
+            // Create random order of routes
             var routes = IntStream.range(0, solution.getSchedule().length)
                     .boxed()
                     .collect(Collectors.toList());
             Collections.shuffle(routes, rand);
 
             // For every route
-            for (Integer j : routes) {
+            for (Integer routeIdx : routes) {
                 // Check if customer can be added at the end of this route
-                var newRoute = createRoute(job, solution.getSchedule()[j]);
-                var isValid = check(solution, newRoute);
-                if (isValid) {
-                    solution.getSchedule()[j] = newRoute;
+                var oldRoute = createRoute(job, solution, routeIdx);
+                var quality = RouteEvaluator.eval(routeIdx, solution);
+                if (quality > 0) {
                     SolutionPurifier.purify(solution);
                     continue JOBS;
                 }
+
+                solution.getSchedule()[routeIdx] = oldRoute;
             }
 
             // Job was not assinged
@@ -91,12 +92,16 @@ public class RandomizedSolutionBuilder {
         return result > 0;
     }
 
-    private Event[] createRoute(Job job, Event[] route) {
+    private Event[] createRoute(Job job, Solution solution, int routeIdx) {
+        var route = solution.getSchedule()[routeIdx];
+
         var newRoute = new Event[route.length + 1];
         System.arraycopy(route, 0, newRoute, 0, route.length - 1);
-        newRoute[route.length - 1 + 1] = job;
+        newRoute[route.length - 1] = job;
         newRoute[newRoute.length - 1] = route[route.length - 1];
 
-        return newRoute;
+        solution.getSchedule()[routeIdx] = newRoute;
+
+        return route;
     }
 }

@@ -50,11 +50,10 @@ public class RouteEvaluator {
 
         // check skills - Does the current context provide enough skills to process this job
         if(context.getCurrentEvent() instanceof Job job) {
-            var providedSkills = context.getProvidedSkillsOfDepot() & context.getProvidedSkillsOfVehicle();
+            var providedSkills = context.getProvidedSkillsOfDepot() | context.getProvidedSkillsOfVehicle();
             var diffSkills = (providedSkills & job.expectedSkills()) ^ job.expectedSkills();
 
-            if(diffSkills > 0)
-                return false;
+            return diffSkills <= 0;
         }
 
         return true;

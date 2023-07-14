@@ -24,19 +24,20 @@ public class Context {
         this.model = model;
         this.vehicle = vehicle;
         this.providedSkillsOfVehicle = vehicle.providedSkills();
+        this.loadedAmount = new float[vehicle.capacities().length];
     }
 
-    private int currentRouteIdx;
+    private int currentRouteIdx = -1;
     private Event lastEvent;
     private Event currentEvent;
 
     public Event nextEvent(Event[] route) {
-        int nextIdx = -1;
+        int nextIdx = currentRouteIdx;
         Event nextEvent = null;
 
         var needCheck = true;
         while(needCheck) {
-            nextIdx = currentRouteIdx + 1;
+            nextIdx++;
             if(nextIdx >= route.length)
                 return null;
 

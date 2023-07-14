@@ -136,7 +136,7 @@ public class ModelBuilder {
         var skills = new HashMap<String, Skill>();
         for (int i = 0; i < skillNames.size(); i++) {
             skills.put(skillNames.get(i), new Skill(
-                    2 >> i,
+                    1 << i,
                     skillNames.get(i)
             ));
         }
