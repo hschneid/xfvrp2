@@ -2,6 +2,7 @@ package xf.xfvrp.report;
 
 import xf.xfvrp.model.Vehicle;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +25,8 @@ public class Report {
 	private final List<RouteReport> reportList = new ArrayList<>();
 
 	private final Set<Vehicle> vehicleSet = new HashSet<>();
+
+	private final List<String> unplannedJobs = new ArrayList<>();
 	
 	/**
 	 * A Report is the structral representation of a route planning solution.
@@ -64,5 +67,9 @@ public class Report {
 	public void importReport(Report rep) {
 		for (RouteReport tRep : rep.getRoutes())
 			add(tRep);
+	}
+
+	public List<String> getUnplannedJobs() {
+		return unplannedJobs;
 	}
 }

@@ -6,11 +6,16 @@ import xf.xfvrp.input.JobData;
 import xf.xfvrp.input.VehicleData;
 import xf.xfvrp.input.ModelBuilder;
 import xf.xfvrp.model.Metric;
+import xf.xfvrp.optimize.Solution;
 import xf.xfvrp.optimize.construction.RandomizedSolutionBuilder;
+import xf.xfvrp.report.Report;
+import xf.xfvrp.report.build.ReportBuilder;
 
 public class XFVRP {
 
     private final Importer importer = new Importer();
+
+    private Solution lastSolution = null;
 
     public void execute() {
         importer.finishImport();
@@ -21,7 +26,16 @@ public class XFVRP {
                 importer.getMetric()
         );
         var solution = new RandomizedSolutionBuilder().build(model);
-        System.out.println();
+
+        this.lastSolution = solution;
+    }
+
+    public Report getReport() {
+        if(lastSolution != null) {
+            return new ReportBuilder().getReport(lastSolution);
+        }
+
+        return null;
     }
 
     public DepotData buildDepot() {

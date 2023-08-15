@@ -32,6 +32,12 @@ public class ReportBuilder {
             }
         }
 
+        rep.getUnplannedJobs().addAll(
+                solution.getUnassignedJobs().stream()
+                        .map(Job::name)
+                        .toList()
+        );
+
         return rep;
     }
 

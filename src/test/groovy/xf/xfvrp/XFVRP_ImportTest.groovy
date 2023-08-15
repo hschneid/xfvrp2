@@ -11,25 +11,34 @@ package xf.xfvrp
 import spock.lang.Specification
 import xf.xfvrp.model.EucledianMetric
 import xf.xfvrp.model.LoadType
+import xf.xfvrp.report.Report
+import xf.xfvrp.report.ReportEvent
+import xf.xfvrp.report.RouteReport
+
+import java.util.stream.Collectors
 
 class XFVRP_ImportTest extends Specification {
 
-    def "First test"() {
+    def "Create initial and valid solution from given data"() {
         def vrp = new XFVRP()
         vrp.setMetric(new EucledianMetric())
 
-        var depot1 = addDepot(vrp,"DEP1",10, 10,11, [[10,40],[50,80]] as List<float[]>,['A', 'B'])
-        var depot2 = addDepot(vrp,"DEP2",20, 20,12, [[10,40],[50,80]] as List<float[]>,['A', 'C'])
-        var job1 = addJob(vrp, "J1", 5, 5, [3,1,1] as float[], LoadType.DELIVERY, 5, [[5,60],[70,100]] as List<float[]>, ['B', 'D'])
-        var job2 = addJob(vrp, "J2", 15, 15, [3,1,1] as float[], LoadType.DELIVERY, 6, [[5,60],[70,100]] as List<float[]>, ['C', 'E'])
-        var veh1 = addVehicle(vrp, 'LKW1', 'DEP1', ['DEP1', 'DEP2'], [5,5,5] as float[], 100, 0.1, [[0,100],[200,300]] as List<float[]>,['D'])
-        var veh2 = addVehicle(vrp, 'LKW2', 'DEP2', ['DEP1', 'DEP2'], [5,5,5] as float[], 100, 0.1, [[0,100],[200,300]] as List<float[]>,['E'])
+        addDepot(vrp,"DEP1",10, 10,11, [[10,40],[50,80]] as List<float[]>,['A', 'B'])
+        addDepot(vrp,"DEP2",20, 20,12, [[10,40],[50,80]] as List<float[]>,['A', 'C'])
+        addJob  (vrp, "J1", 5, 5, [3,1,1] as float[], LoadType.DELIVERY, 5, [[5,60],[70,100]] as List<float[]>, ['B', 'D'])
+        addJob  (vrp, "J2", 15, 15, [3,1,1] as float[], LoadType.DELIVERY, 6, [[5,60],[70,100]] as List<float[]>, ['C', 'E'])
+        addJob  (vrp, "J3", 15, 15, [3,1,1] as float[], LoadType.DELIVERY, 6, [[5,60],[70,100]] as List<float[]>, ['F'])
+        addVehicle(vrp, 'LKW1', 'DEP1', ['DEP1', 'DEP2'], [5,5,5] as float[], 100, 0.1, [[0,100],[200,300]] as List<float[]>,['D'])
+        addVehicle(vrp, 'LKW2', 'DEP2', ['DEP1', 'DEP2'], [5,5,5] as float[], 100, 0.1, [[0,100],[200,300]] as List<float[]>,['E'])
 
         when:
         vrp.execute()
+        def report = vrp.getReport()
 
         then:
-        1 == 1
+        toString(report, 0) == 'DEP1,J1,DEP1'
+        toString(report, 1) == 'DEP2,J2,DEP2'
+        report.unplannedJobs[0] == 'J3'
     }
 
     void addDepot(XFVRP vrp, String name, float xlong, float ylat, float serviceTime, List<float[]> timeWindows, List<String> skills) {
@@ -85,5 +94,11 @@ class XFVRP_ImportTest extends Specification {
         for (String s : skills) {
             v.setProvidedSkill(s)
         }
+    }
+
+    String toString(Report rep, int routeIdx) {
+        return rep.routes[routeIdx].events.stream()
+                .map(e -> e.name())
+                .collect(Collectors.joining(','))
     }
 }

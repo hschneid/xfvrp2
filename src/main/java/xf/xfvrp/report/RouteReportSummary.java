@@ -66,11 +66,13 @@ public class RouteReportSummary {
 	 * The aggregation of KPIs is done in this method.
 	 */
 	public void add(ReportEvent e) {
+		nbrOfEvents++;
+
 		/*distance += e.getDistance();
 		duration += e.getDuration();
 		delay += e.getDelay();
 		waitingTime += e.getWaiting();
-		nbrOfEvents++;
+
 
 		for (int i = 0; i < context.getAmountsOfRoute().length; i++) {
 			if (e.getSiteType() == SiteType.REPLENISH) {
