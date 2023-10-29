@@ -3,15 +3,14 @@ package xf.xfvrp.optimize.construction;
 import xf.xfvrp.model.Event;
 import xf.xfvrp.model.Job;
 import xf.xfvrp.model.Model;
+import xf.xfvrp.model.Vehicle;
 import xf.xfvrp.optimize.Solution;
+import xf.xfvrp.optimize.SolutionOperation;
 import xf.xfvrp.optimize.evaluation.Evaluator;
 import xf.xfvrp.optimize.evaluation.RouteEvaluator;
 import xf.xfvrp.optimize.evaluation.SolutionPurifier;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -31,41 +30,49 @@ public class RandomizedSolutionBuilder {
 
     private Solution createSolution(Model model) {
         var solution = new Solution(model);
+
         // Create schedule
         solution.setSchedule(new Event[model.vehicles().length][2]);
+
         // Set home depots
         for (int i = 0; i < solution.getSchedule().length; i++) {
             var homeDepot = solution.getModel().vehicles()[i].homeDepot();
             solution.getSchedule()[i][0] = homeDepot;
             solution.getSchedule()[i][1] = homeDepot;
         }
-        // Set unassigned jobs
-        solution.setUnassignedJobs(Arrays.asList(model.jobs()));
+
+        // Set all jobs to unassigned vehicle
+        SolutionOperation.appendToVehicle(solution, model.unassignedVehicleIdx(), model.jobs());
 
         return solution;
     }
 
     private void addJobs(Solution solution) {
-        var jobs = new ArrayList<>(solution.getUnassignedJobs());
+        var jobs = Arrays.stream(solution.getSchedule()[solution.getModel().unassignedVehicleIdx()])
+                .map(j -> (j instanceof Job job) ? job : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         // Bring customers into randomized order
         Collections.shuffle(jobs, rand);
         SolutionPurifier.purify(solution);
 
-        solution.setUnassignedJobs(new ArrayList<>());
+        SolutionOperation.clearVehicle(solution, solution.getModel().unassignedVehicleIdx());
 
         JOBS:
         for (Job job : jobs) {
             // Create random order of routes
             var routes = IntStream.range(0, solution.getSchedule().length)
                     .boxed()
+                    .filter(f -> f != solution.getModel().unassignedVehicleIdx())
                     .collect(Collectors.toList());
             Collections.shuffle(routes, rand);
 
             // For every route
             for (Integer routeIdx : routes) {
                 // Check if customer can be added at the end of this route
-                var oldRoute = createRoute(job, solution, routeIdx);
+                var oldRoute = solution.getSchedule()[routeIdx];
+                SolutionOperation.appendToVehicle(solution, routeIdx, job);
                 var quality = RouteEvaluator.eval(routeIdx, solution);
                 if (quality > 0) {
                     SolutionPurifier.purify(solution);
@@ -75,33 +82,8 @@ public class RandomizedSolutionBuilder {
                 solution.getSchedule()[routeIdx] = oldRoute;
             }
 
-            // Job was not assinged
-            solution.getUnassignedJobs().add(job);
+            // Job was not assigned
+            SolutionOperation.appendToVehicle(solution, solution.getModel().unassignedVehicleIdx(), job);
         }
-    }
-
-    private boolean check(Solution sol, Event[] newRoute) {
-        var newSol = new Solution(sol.getModel());
-
-        var schedule = new Event[1][];
-        schedule[0] = newRoute;
-        newSol.setSchedule(schedule);
-        var result = RouteEvaluator.eval(0, newSol);
-
-        // Invalid is result == -1
-        return result > 0;
-    }
-
-    private Event[] createRoute(Job job, Solution solution, int routeIdx) {
-        var route = solution.getSchedule()[routeIdx];
-
-        var newRoute = new Event[route.length + 1];
-        System.arraycopy(route, 0, newRoute, 0, route.length - 1);
-        newRoute[route.length - 1] = job;
-        newRoute[newRoute.length - 1] = route[route.length - 1];
-
-        solution.getSchedule()[routeIdx] = newRoute;
-
-        return route;
     }
 }

@@ -1,7 +1,5 @@
 package xf.xfvrp.input;
 
-import xf.xfvrp.model.Location;
-
 import java.util.ArrayList;
 import java.util.List;
 

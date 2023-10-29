@@ -5,6 +5,6 @@ public record Model(
         Job[] jobs,
         Depot[] depots,
         Metric metric,
-        Skill[] skills
-) {
-}
+        Skill[] skills,
+        int unassignedVehicleIdx
+) {}

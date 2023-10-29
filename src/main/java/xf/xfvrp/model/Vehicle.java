@@ -11,4 +11,8 @@ public record Vehicle(
         float varCost,
         int providedSkills
 ) {
+
+    public boolean isUnassignedVehicle() {
+        return name.equals("ZZZ_UNASSIGNED");
+    }
 }

@@ -1,10 +1,7 @@
 package xf.xfvrp.optimize;
 
 import xf.xfvrp.model.Event;
-import xf.xfvrp.model.Job;
 import xf.xfvrp.model.Model;
-
-import java.util.List;
 
 public class Solution {
 
@@ -13,8 +10,6 @@ public class Solution {
     private Event[][] schedule;
 
     private float quality;
-
-    private List<Job> unassignedJobs;
 
     public Solution(Model model) {
         this.model = model;
@@ -38,13 +33,5 @@ public class Solution {
 
     public void setQuality(float quality) {
         this.quality = quality;
-    }
-
-    public List<Job> getUnassignedJobs() {
-        return unassignedJobs;
-    }
-
-    public void setUnassignedJobs(List<Job> unassignedJobs) {
-        this.unassignedJobs = unassignedJobs;
     }
 }

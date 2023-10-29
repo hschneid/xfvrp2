@@ -3,6 +3,7 @@ package xf.xfvrp.optimize.evaluation;
 import xf.xfvrp.model.Depot;
 import xf.xfvrp.model.Event;
 import xf.xfvrp.model.Job;
+import xf.xfvrp.model.Model;
 import xf.xfvrp.optimize.Solution;
 
 public class RouteEvaluator {
@@ -22,7 +23,7 @@ public class RouteEvaluator {
                 context.addAmounts();
             }
 
-            if(!isContextValid(context))
+            if(!isContextValid(context, solution.getModel()))
                 return -1;
         }
 
@@ -34,7 +35,11 @@ public class RouteEvaluator {
                 context.getDistance() * context.getVehicle().varCost();
     }
 
-    private static boolean isContextValid(Context context) {
+    private static boolean isContextValid(Context context, Model model) {
+        // Unassigned vehicle
+        if(context.getVehicle().idx() == model.unassignedVehicleIdx())
+            return true;
+
         // check capacity
         for (int i = 0; i < context.getVehicle().capacities().length; i++) {
             if(context.getLoadedAmount()[i] > context.getVehicle().capacities()[i])

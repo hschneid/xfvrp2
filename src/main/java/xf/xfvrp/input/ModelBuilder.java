@@ -1,5 +1,7 @@
 package xf.xfvrp.input;
 
+import xf.xfvrp.exception.XFVRPException;
+import xf.xfvrp.exception.XFVRPExceptionType;
 import xf.xfvrp.model.*;
 
 import java.util.*;
@@ -24,17 +26,25 @@ public class ModelBuilder {
     }
 
     private static Model buildModel(Map<String, Skill> skills, Map<String, Depot> depots, Job[] jobs, Vehicle[] vehicles, Metric metric) {
+        var unassignedVehicle = Arrays.stream(vehicles)
+                .filter(Vehicle::isUnassignedVehicle)
+                .mapToInt(Vehicle::idx)
+                .findAny()
+                .orElseThrow(() -> new XFVRPException(XFVRPExceptionType.ILLEGAL_STATE, "Could not find the mandatory vehicle for unassigned vehicles"));
+
         return new Model(
                 vehicles,
                 jobs,
                 depots.values().toArray(new Depot[0]),
                 metric,
-                skills.values().toArray(new Skill[0])
+                skills.values().toArray(new Skill[0]),
+                unassignedVehicle
         );
     }
 
     private static Vehicle[] buildVehicles(List<VehicleData> inputVehicles, Map<String, Depot> depots, Map<String, Skill> skills) {
         var idx = new AtomicInteger(0);
+        inputVehicles.add(buildUnassignedVehicle());
         return inputVehicles
                 .stream()
                 .sorted(Comparator.comparing(VehicleData::getName))
@@ -50,6 +60,33 @@ public class ModelBuilder {
                         buildSkillValue(i.getProvidedSkills(), skills)
                 ))
                 .toArray(Vehicle[]::new);
+    }
+
+    /**
+     * Creates a vehicle/route, which contains all unassigned jobs
+     * and where the costs for transport are exceptional high
+     */
+    private static VehicleData buildUnassignedVehicle() {
+        return new VehicleData()
+                .setName("ZZZ_UNASSIGNED")
+                .setCapacities(new float[0])
+                .setHomeDepot("ZZZ_UNASSIGNED")
+                .setTimeWindow(new float[]{0, Float.MAX_VALUE})
+                .setFixCost(0)
+                .setVariableCost(9999);
+    }
+
+    /**
+     * Creates a depot, which is used on routes with unassigned jobs.
+     * The constraints are limitless so that solution is still valid.
+     */
+    private static DepotData buildUnassignedDepot(DepotData draft) {
+        return new DepotData()
+                .setName("ZZZ_UNASSIGNED")
+                .setTimeWindow(new float[]{0, Float.MAX_VALUE})
+                .setGeoId(draft.getGeoId())
+                .setXlong(draft.getXlong())
+                .setYlat(draft.getYlat());
     }
 
     private static Depot[] buildDepotsOfVehicle(List<String> availableDepots, Map<String, Depot> depots) {
@@ -86,6 +123,7 @@ public class ModelBuilder {
 
     private static Map<String, Depot> buildDepots(List<DepotData> inputDepots, Map<String, Skill> skills) {
         var idx = new AtomicInteger(0);
+        inputDepots.add(buildUnassignedDepot(inputDepots.get(0)));
         return inputDepots
                 .stream()
                 .sorted(Comparator.comparing(DepotData::getName))

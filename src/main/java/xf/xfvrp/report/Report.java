@@ -30,7 +30,6 @@ public class Report {
 	
 	/**
 	 * A Report is the structral representation of a route planning solution.
-	 *
 	 */
 	public Report() {
 	}

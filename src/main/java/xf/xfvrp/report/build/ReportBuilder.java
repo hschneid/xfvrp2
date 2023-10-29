@@ -8,6 +8,8 @@ import xf.xfvrp.report.ReportEvent;
 import xf.xfvrp.report.RouteReport;
 import xf.xfvrp.report.SiteType;
 
+import java.util.Arrays;
+
 /**
  * Copyright (c) 2012-2022 Holger Schneider
  * All rights reserved.
@@ -22,21 +24,32 @@ import xf.xfvrp.report.SiteType;
 public class ReportBuilder {
 
     public Report getReport(Solution solution) throws XFVRPException {
-        Report rep = new Report();
+        var rep = new Report();
 
-        Event[][] schedule = solution.getSchedule();
+        var schedule = solution.getSchedule();
         for (int i = 0; i < schedule.length; i++) {
-            Event[] route = schedule[i];
-            if (containsCustomers(route)) {
-                rep.add(getRouteReport(route, solution.getModel().vehicles()[i]));
+            var route = schedule[i];
+            var vehicle = solution.getModel().vehicles()[i];
+
+            if (!vehicle.isUnassignedVehicle() && containsCustomers(route)) {
+                rep.add(getRouteReport(route, vehicle));
             }
         }
 
-        rep.getUnplannedJobs().addAll(
-                solution.getUnassignedJobs().stream()
-                        .map(Job::name)
-                        .toList()
-        );
+        // If there is a vehicle for unassinged jobs, find it and
+        // list all job names to report
+        Arrays.stream(solution.getModel().vehicles())
+                .filter(Vehicle::isUnassignedVehicle)
+                .mapToInt(Vehicle::idx)
+                .findAny()
+                .ifPresent(vehIdx ->
+                        rep.getUnplannedJobs().addAll(
+                                Arrays.stream(solution.getSchedule()[vehIdx])
+                                        .filter(e -> e instanceof Job)
+                                        .map(Event::name)
+                                        .toList()
+                        )
+                );
 
         return rep;
     }
@@ -77,6 +90,10 @@ public class ReportBuilder {
     }
 
     private boolean containsCustomers(Event[] route) {
-        return true;
+        for (int i = route.length - 1; i >= 0; i--) {
+            if(route[i] instanceof Job)
+                return true;
+        }
+        return false;
     }
 }
